@@ -1,0 +1,425 @@
+<!-- TO DO -->
+<!-- Preload images -->
+
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8">
+  <title>exp</title>
+  <script src="jsPsych-6.1.0/jspsych.js"></script>
+  <script src="jsPsych-6.1.0/plugins/jspsych-fullscreen.js"></script>
+  <script src="jsPsych-6.1.0/plugins/jspsych-html-keyboard-response.js"></script>
+  <script src="jsPsych-6.1.0/plugins/jspsych-html-button-response.js"></script>
+  <script src="jsPsych-6.1.0/plugins/jspsych-survey-text.js"></script>
+  <script src="jsPsych-6.1.0/plugins/jspsych-survey-likert.js"></script>
+  <script src="jsPsych-6.1.0/plugins/jspsych-survey-multi-choice.js"></script>
+  <script src="js/jspsych-html-slider-response_required.js"></script>
+  <script src="jsPsych-6.1.0/plugins/jspsych-external-html.js"></script>
+  <script src="js/jquery.min.js"></script>
+  <script src="js/lodash.min.js"></script>
+  <script src="js/firebase.js"></script>
+  <link href="jsPsych-6.1.0/css/jspsych.css" rel="stylesheet" type="text/css">
+  <style>
+    body {
+      cursor: default;
+    }
+
+    .jspsych-content-wrapper {
+      width: 70%; 
+      height: 10000px;
+    }
+
+    .paringsImgsLeft,
+    .paringsImgsRight {
+      height: 320px;
+      margin: 0px;
+    }
+
+    .paringsImgsLeft {
+      margin-right: 10px;
+    }
+
+    .displayInstr {
+      height: 130px;
+    }
+  </style>
+</head>
+
+<body></body>
+
+<script>
+  /* Parameters */
+  var delayIti = 100;  // 100; inter-trial-interval for trials
+  var delayTrial = 2000; // 2000; duration of each trial
+  var numOfUS = 1; // number of US to be paired with each CS
+  var redirectToLink = "https://marinerougier.github.io/ECVAAST_RC/RCmarine_EC_VAAST.html"; // link to be redirected to at the end of the experiment
+  var FBdirectory = "vaastEC/EC" // Firebase directory in which to store the data
+
+  /* Initial variables */
+  var timeline = [];
+  var preloadimages = [];
+  var stims = [];
+  var jspsych_id = jsPsych.data.getURLVariable("id");
+  jspsych_id = jspsych_id == null ? jsPsych.randomization.randomID(15) : jspsych_id; // assign random id if not provided in URL
+  var prolificID = jsPsych.data.getURLVariable("PROLIFIC_PID");
+  if(prolificID == null) {prolificID = "999";}
+
+  /* Material */
+  // in R, use the following line code to list files in a directory:
+  // list.files("CS_Visages/", "*B_gp1") %>% paste0("'CS_Visages/", .,"',") %>% cat(sep = "\n")
+
+  // female stimuli
+  var US_highAtt_fem = [
+  "Stim_selected/female_faces/Fem_Att_1_high.jpg", 
+  "Stim_selected/female_faces/Fem_Att_2_high.jpg"
+  ];
+  
+  var US_medAtt_fem = [
+  "Stim_selected/female_faces/Fem_Att_1_med.jpg", 
+  "Stim_selected/female_faces/Fem_Att_2_med.jpg"
+  ];
+
+  var US_lowAtt_fem = [
+  "Stim_selected/female_faces/Fem_Att_1_low.jpg", 
+  "Stim_selected/female_faces/Fem_Att_2_low.jpg"
+  ];
+
+  // male stimuli
+  var US_highAtt_male = [
+  "Stim_selected/male_faces/Male_Att_1_high.jpg", 
+  "Stim_selected/male_faces/Male_Att_2_high.jpg"
+  ];
+  
+  var US_medAtt_male = [
+  "Stim_selected/male_faces/Male_Att_1_med.jpg", 
+  "Stim_selected/male_faces/Male_Att_2_med.jpg"
+  ];
+
+  var US_lowAtt_male = [
+  "Stim_selected/male_faces/Male_Att_1_low.jpg", 
+  "Stim_selected/male_faces/Male_Att_2_low.jpg"
+  ];
+
+  var CS_Neut_fem = [
+  "Stim_selected/female_faces/Fem_Neut_1.jpg", 
+  "Stim_selected/female_faces/Fem_Neut_2.jpg", 
+  "Stim_selected/female_faces/Fem_Neut_3.jpg"
+  ];
+
+  var CS_Neut_male = [
+  "Stim_selected/male_faces/Male_Neut_1.jpg", 
+  "Stim_selected/male_faces/Male_Neut_2.jpg", 
+  "Stim_selected/male_faces/Male_Neut_3.jpg"
+  ];
+
+   // Randomly picking female faces and creating a list
+  US_high_fem = _.sampleSize(US_highAtt_fem, 1);
+  US_med_fem = _.sampleSize(US_medAtt_fem, 1);
+  US_low_fem = _.sampleSize(US_lowAtt_fem, 1);
+
+  var US_fem = _.flattenDeep([US_high_fem, US_med_fem, US_low_fem]);
+
+  // Randomly picking male faces and creating a list
+  US_high_male = _.sampleSize(US_highAtt_male, 1);
+  US_med_male = _.sampleSize(US_medAtt_male, 1);
+  US_low_male = _.sampleSize(US_lowAtt_male, 1);
+
+  var US_male = _.flattenDeep([US_high_male, US_med_male, US_low_male]);
+
+  // preload
+  preloadimages.push(CS_Neut_fem, CS_Neut_male, US_fem, US_male);
+
+  // randomly assigning either the female or the male list 
+  var gender_stim = jsPsych.randomization.sampleWithoutReplacement(["male", "female"], 1)[0];
+
+  var CS = undefined;
+  var US = undefined;
+
+switch (gender_stim) {
+  case "male":
+    {CS = CS_Neut_male;
+    US  = US_male};
+    break;
+  case "female":
+    {CS = CS_Neut_fem;
+    US  = US_fem};
+    break;
+}
+
+  //var US = jsPsych.randomization.sampleWithoutReplacement([US_fem, US_male], 1)[0];
+  //US_display = US.map(function(e) {return {imgHtml: "<img class='imgJudge' src='" + e + "'>"}});
+
+  /* Functions */
+  // duplicate elements of an array n times
+  // see https://stackoverflow.com/questions/56330349/how-to-duplicate-elements-in-a-js-array-without-creating-dependent-elements?
+  function duplicateElements(elementsArray, times) {
+    var newArray = [];
+    for (let index = 0; index < elementsArray.length; index++) {
+      var currentElement = elementsArray[index];
+      var currentType = typeof currentElement
+      for (let index = 0; index < times; index++) {
+        if (currentType !== "object" && currentType) {
+          newArray.push(currentElement)
+        } else if (currentType === "object" && currentType) {
+          newArray.push({ ...currentElement })
+        }
+      }
+    }
+    return newArray;
+  }
+
+  /* RANDOMIZATION ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+  /* PAIRING PROCEDURE */
+  // We create a variable coding for the pairing Bob/John with attractive/unattractive faces
+  // var pairing_cond = jsPsych.randomization.sampleWithoutReplacement(["Bob_att", "Bob_unatt"], 1)[0];
+/*
+  // generate US-CS parings
+  CS.map(function (e) { stims.push({ CS: e }) });
+  stims = duplicateElements(stims, numOfUS);
+
+  // randomly assign pos or neg US to each CS
+  var US = [];
+  var USCSpairing = CS + USvalence[0];
+ 
+  USvalence = duplicateElements(USvalence, CS.length / 2);
+  USvalence.map(function (e) {
+    if (e == "neg") US.push(_.sampleSize(USneg, numOfUS));
+    if (e == "pos") US.push(_.sampleSize(USpos, numOfUS));
+  });
+*/
+
+  US = _.flattenDeep(US);
+  stims.map(function (e, i) { e.US = US[i] });
+
+  CS = _.flattenDeep(CS);
+  stims.map(function (e, i) { e.CS = CS[i] });
+
+  var USCSpairing = CS + US;
+
+  // randomized US-CS horizontal position
+  stims.map(function (e) { e.CSposition = _.sample(["left", "right"]) });
+
+
+  /* EXPERIMENT ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+  /* Fullscreen mode & Consent */
+    var activeFullscreen = {
+      message: "",
+      button_label: "To start the study, please switch to fullscreen",
+      type: 'fullscreen',
+      fullscreen_mode: true,
+      delay_after: 200,
+    };
+
+    // Consent
+    var check_consent = function(elem) {
+      if (document.getElementById('info').checked 
+        & document.getElementById('volunt').checked 
+        & document.getElementById('anony').checked 
+        & document.getElementById('end').checked 
+        & document.getElementById('consqc').checked 
+        & document.getElementById('summ').checked 
+        & document.getElementById('participate').checked ) {
+        return true;
+      }
+      else {
+        alert("If you wish to participate, you must check all the boxes.");
+        return false;
+      }
+      return false;
+    };
+
+
+    var consent = {
+      type:'external-html',
+      url: "https://marinerougier.github.io/Ugent_1/external_page_consent.html",
+      cont_btn: "start",
+      check_fn: check_consent
+    };
+
+
+    var Gene_Instr = {
+    type: "html-button-response",
+    post_trial_gap: 300,
+    choices: ['Continue'],
+    stimulus: function () {
+      var html = "";
+      html += "<h1>About this study...</h1>";
+      html += "<p class = 'justify'>In this study, you will complete several tasks. "; 
+      html += "The whole study should last around XX minutes. Note that it is extremely important that ";
+      html += "you remain <b>fully focused</b> during the entire study.</b></p>";
+      return html;
+    }
+  };
+
+  /* Present paired US-CS */
+  var pairingInst = {
+    type: "html-button-response",
+    post_trial_gap: 300,
+    choices: ['Start'],
+    stimulus: function () {
+      var html = "";
+      html += "<h1>TASK 1</h1>";
+      html += "<p class = 'justify'>In the following task, ";
+      html += "you will be presented with a series of faces. <br>";
+      //html += "<center>These are the faces:<br> <img class='displayInstr' src='" + US_display + "'><br><br></center>";
+      html += "Bob and John will be paired with other faces. Your task is simply to <b>look carefully at ";
+      html += "all the faces (including Bob and John) presented on the screen.</b> ";
+      html += "The task will be automatically paced</p>";
+      return html;
+    }
+  };
+
+  /* Pairings */
+  var evacond = {
+    timeline_variables: stims,
+    randomize_order: true,
+    choices: jsPsych.NO_KEYS,
+    trial_duration: delayTrial,
+    post_trial_gap: delayIti,
+    on_load: function () {
+      $('body').css({ "cursor": "none" });
+      $('.jspsych-content').css({ "max-width": "100%" });
+    },
+    timeline: [{
+      type: 'html-keyboard-response',
+      stimulus: function () {
+        if (jsPsych.timelineVariable('CSposition', true) == "left") {
+          var leftImg = jsPsych.timelineVariable('CS', true);
+          var rightImg = jsPsych.timelineVariable('US', true);
+        } else {
+          var leftImg = jsPsych.timelineVariable('US', true);
+          var rightImg = jsPsych.timelineVariable('CS', true);
+        };
+        html = '';
+        html += "<img class='paringsImgsLeft' src='" + leftImg + "'>";
+        html += "<img class='paringsImgsRight' src='" + rightImg + "'>";
+        return html;
+      },
+      on_finish: function (data) {
+        $('.jspsych-content').css({ "max-width": "90%" });
+        data.cond = "evacond";
+        data.CS = jsPsych.timelineVariable('CS', true);
+        data.US = jsPsych.timelineVariable('US', true);
+        data.CSposition = jsPsych.timelineVariable('CSposition', true);
+      },
+    }]
+  };
+
+
+  /* JUDGMENTS INSTRUCTIONS */
+  var Instr_CSrating = {
+    type: "html-keyboard-response",
+    post_trial_gap: 300,
+    choices: [32],
+    stimulus: function() {
+      var html = "";
+      html += "<h1>TASK 2</h1>";
+      html += "<p class='justify'>Now, your task is to evaluate Bob and John on a series of personality traits.</b> ";
+      html += "Specifically, you will have to evaluate to what extent Bob and John seem ";
+      html += "<b>aggressive, trustworthy</b> and <b>criminal</b> (from 0 = not at all to 100 = totally). </br> ";
+      html += "It is very important that you try to answer <b> as honestly and as spontaneously as possible.</b></br></br>";
+      html += "<p></br>Press <span class='light-keys'><kbd>space</kbd></span> to begin</p>";
+      return html;
+    },
+  };
+
+// Judgments
+
+  var scaleAgressivity = ["0</br>Not agressive at all", "10", "20", "30", "40", "50", "60", "70", "80", "90", "100</br>Totally aggressive"];
+  var scaleTrustworthiness = ["0</br>Not trustworthy at all", "10", "20", "30", "40", "50", "60", "70", "80", "90", "100</br>Totally trustworthy"];
+  var scaleCriminality = ["0</br>Not criminal at all", "10", "20", "30", "40", "50", "60", "70", "80", "90", "100</br>Totally criminal"];
+
+  var CSrating = [];
+  CS.map(function(stims){
+    var likert_trial = {
+        type: 'survey-likert',
+        preamble: stims.imgHtml,
+        questions: [
+          {prompt: "", labels: scaleAgressivity, required: true},
+          {prompt: "", labels: scaleTrustworthiness, required: true},
+          {prompt: "", labels: scaleCriminality, required: true},
+        ],
+        button_label: 'Continue',
+        on_load: function() {
+          $(".jspsych-content").css("max-width", "100%");
+          $(".jspsych-survey-likert-statement").css("margin", "0px");
+          $(".jspsych-survey-likert-statement").css("padding", "0px");
+          $(".jspsych-survey-likert-opts").css("padding", "0 0 10px");
+          $("#jspsych-survey-likert-next").css("margin-top", "10px");
+          $("#jspsych-survey-likert-form").css("width", "800px");
+          $("li").css("width", "9%");
+        //   $("li:first-of-type").css("width", "110px");
+        //   $("li:last-of-type").css("width", "110px");
+        },
+        on_finish: function(data) {
+          var parsed_response  = JSON.parse(data.responses);
+          data.agressivity     = parsed_response.Q0 * 10;
+          data.trustworthiness = parsed_response.Q1 * 10;
+          data.criminality     = parsed_response.Q2 * 10;
+          data.stims              = stims.imgHtml;
+        },
+    };
+    CSrating.push(likert_trial);
+  });
+
+
+  /* TIMELINES ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+  timeline.push(activeFullscreen);
+  //timeline.push(consent);
+  timeline.push(Gene_Instr);
+  timeline.push(pairingInst);
+  timeline.push(evacond);
+  timeline.push(Instr_CSrating);
+  timeline.push(CSrating);
+
+  preloadimages = _.flattenDeep(preloadimages);
+
+  /* INITIALISE EXP  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+  jsPsych.init({
+    timeline: timeline,
+    preload_images: preloadimages,
+    max_load_time: 300 * 1000,
+    exclusions: {
+      min_width: 800,
+      min_height: 600,
+    },
+    on_finish: function (data) {
+      $("#jspsych-content").html("<img src='https://i.gifer.com/4V0b.gif'>");
+
+
+      /* Initialize Firebase */
+      var config = {
+        apiKey: "AIzaSyAPTEPrT8V9T1-GouWXnW6jknK3brmagJs",
+        databaseURL: "https://vaastiat.firebaseio.com/"
+      };
+
+      firebase.initializeApp(config);
+      var database = firebase.database();
+
+      // if no id provided, generate a new id
+      // if (jspsych_id == null) { jspsych_id = jsPsych.randomization.randomID(15) };
+
+      /* jsPsych: add data to every trial */
+      jsPsych.data.addProperties({
+        jspsych_id: jspsych_id,
+        prolificID: prolificID,
+        //groupColor: groupColor,
+        USCSpairing: USCSpairing
+      });
+
+      var dataEC = data.filter({ cond: 'evacond' }).csv();
+
+      /* Send data to Firebase */
+      database
+        .ref(FBdirectory + "/" + jspsych_id + "/")
+        .update({ dataEC })
+        .then(function () {
+          console.log("Data sent!");
+          window.location.href = link; // redirected
+        });
+    }
+  });
+</script>
+
+</html>
