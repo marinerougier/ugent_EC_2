@@ -94,46 +94,46 @@
 
   // female stimuli
   var US_highAtt_fem = [
-  "Stim_selected/Fem_Att_1_high.jpeg", 
-  "Stim_selected/Fem_Att_2_high.jpeg"
+  "Stim_selected/Fem_Att_1_high.jpg", 
+  "Stim_selected/Fem_Att_2_high.jpg"
   ];
   
   var US_medAtt_fem = [
-  "Stim_selected/Fem_Att_1_med.jpeg", 
-  "Stim_selected/Fem_Att_2_med.jpeg"
+  "Stim_selected/Fem_Att_1_med.jpg", 
+  "Stim_selected/Fem_Att_2_med.jpg"
   ];
 
   var US_lowAtt_fem = [
-  "Stim_selected/Fem_Att_1_low.jpeg", 
-  "Stim_selected/Fem_Att_2_low.jpeg"
+  "Stim_selected/Fem_Att_1_low.jpg", 
+  "Stim_selected/Fem_Att_2_low.jpg"
   ];
 
   // male stimuli
   var US_highAtt_male = [
-  "Stim_selected/Male_Att_1_high.jpeg", 
-  "Stim_selected/Male_Att_2_high.jpeg"
+  "Stim_selected/Male_Att_1_high.jpg", 
+  "Stim_selected/Male_Att_2_high.jpg"
   ];
   
   var US_medAtt_male = [
-  "Stim_selected/Male_Att_1_med.jpeg", 
-  "Stim_selected/Male_Att_2_med.jpeg"
+  "Stim_selected/Male_Att_1_med.jpg", 
+  "Stim_selected/Male_Att_2_med.jpg"
   ];
 
   var US_lowAtt_male = [
-  "Stim_selected/Male_Att_1_low.jpeg", 
-  "Stim_selected/Male_Att_2_low.jpeg"
+  "Stim_selected/Male_Att_1_low.jpg", 
+  "Stim_selected/Male_Att_2_low.jpg"
   ];
 
   var CS_Neut_fem = [
-  "Stim_selected/Fem_Neut_1.jpeg", 
-  "Stim_selected/Fem_Neut_2.jpeg", 
-  "Stim_selected/Fem_Neut_3.jpeg"
+  "Stim_selected/Fem_Neut_1.jpg", 
+  "Stim_selected/Fem_Neut_2.jpg", 
+  "Stim_selected/Fem_Neut_3.jpg"
   ];
 
   var CS_Neut_male = [
-  "Stim_selected/Male_Neut_1.jpeg", 
-  "Stim_selected/Male_Neut_2.jpeg", 
-  "Stim_selected/Male_Neut_3.jpeg"
+  "Stim_selected/Male_Neut_1.jpg", 
+  "Stim_selected/Male_Neut_2.jpg", 
+  "Stim_selected/Male_Neut_3.jpg"
   ];
 
    // Randomly picking female faces and creating a list
@@ -318,7 +318,7 @@
     stimulus: function() {
       var html = "";
       html += "<br><h1>Study of accuracy in person perception: Part 1</h1>";
-      html += "<p class='justify'>Below are the faces that will be presented on the <u>"+USposition+"</u> (i.e., together with the faces you will judge). Please, <b>read carefully the labels and the information that we provide for each face. </b></p>"
+      html += "<p class='justify'>Below are the faces that will be presented on the <u>"+USposition+"</u> (i.e., together with the faces you will judge). Please, <b>try to remember the information that we provide for each face. </b></p>"
       html += "<table style='margin-top:-50px;margin-left:auto;margin-right:auto'>" ;
       html += "<tr>" ;
       html += "<td><img class='imgInstr' src='" + US_low + "'></td>";
@@ -511,6 +511,7 @@
         questions: [
           {prompt: "", labels: scaleSociable, required: true},
           {prompt: "", labels: scaleFunLoving, required: true},
+          /*
           {prompt: "", labels: scaleLikable, required: true},
           {prompt: "", labels: scalePopular, required: true},
           {prompt: "", labels: scaleIntelligent, required: true},
@@ -551,6 +552,7 @@
           {prompt: "", labels: scalePompous, required: true},
           {prompt: "", labels: scalePrudish, required: true},
           {prompt: "", labels: scaleBoastfull, required: true},
+          */
         ],
         randomize_question_order: true, 
         button_label: 'Continue',
